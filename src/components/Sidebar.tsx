@@ -7,7 +7,7 @@ export const Sidebar = () => {
     const NAV_LINKS = [
         { to: "/", label: "Overview" },
         { to: "/logs", label: "Log" },
-        { to: "/reports", label: "Reports" },
+        { to: "/quality", label: "Quality" },
         { to: "/parts", label: "Parts" },
         { to: "/users", label: "Users" },
     ];
