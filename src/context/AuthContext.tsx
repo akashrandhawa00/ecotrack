@@ -18,7 +18,7 @@ interface AuthContextType {
     } | null;
     loading: boolean;
     signInWithEmail: (email: string, password: string) => Promise<void>;
-    signOut: () => void;
+    signOut: () => Promise<void>;
 }
 
 interface Profile {
@@ -70,17 +70,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 password,
             });
 
-        console.log("data:", data);
-        console.log("error:", signInError);
-
         if (signInError) throw new Error(signInError.message);
 
         setUser(data.user ?? null);
-        console.log("user id: " + data.user.id);
     };
 
-    const signOut = () => {
-        supabase.auth.signOut();
+    const signOut = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
     };
 
     const session = user
