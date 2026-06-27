@@ -4,13 +4,14 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useState,
 } from "react";
 import { supabase } from "../lib/supabase-client";
 
 interface AuthContextType {
     user: User | null;
-    currentUser: {
+    sessionUser: {
         id: string | null;
         email: string | null;
         name: string | null;
@@ -36,27 +37,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     const fetchProfile = useCallback(async (userId: string) => {
-        const { data, error: fetchError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
-        setProfile(data ?? null);
+        try {
+            const { data, error: fetchError } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", userId)
+                .single();
+            setProfile(data ?? null);
 
-        if (fetchError) throw new Error(fetchError.message);
+            if (fetchError) {
+                console.error("Profile fetch error: ", fetchError.message);
+                setProfile(null);
+            } else {
+                setProfile(data ?? null);
+            }
+        } catch (error) {
+            console.error("Unexpected profile error: ", error);
+            setProfile(null);
+        }
     }, []);
 
     useEffect(() => {
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            setUser(session?.user ?? null);
-            if (session?.user) await fetchProfile(session?.user.id);
-            setLoading(false);
-        });
-
         const { data: listener } = supabase.auth.onAuthStateChange(
-            async (_, currentUser) => {
-                setUser(currentUser?.user ?? null);
-                if (currentUser?.user) await fetchProfile(currentUser?.user.id);
+            async (_, session) => {
+                const sessionUser = session.user ?? null;
+                setUser(sessionUser);
+
+                if (sessionUser) {
+                    await fetchProfile(sessionUser.id);
+                } else {
+                    setProfile(null);
+                }
 
                 setLoading(false);
             },
@@ -78,20 +89,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signOut = async () => {
         await supabase.auth.signOut();
-        setUser(null);
-        setProfile(null);
     };
 
-    const currentUser = user
-        ? {
-              id: user.id,
-              email: user.email ?? null,
-              name: profile?.full_name ?? null,
-              avatar: profile?.avatar_url ?? null,
-          }
-        : null;
+    const sessionUser = useMemo(
+        () =>
+            user
+                ? {
+                      id: user.id,
+                      email: user.email ?? null,
+                      name: profile?.full_name ?? null,
+                      avatar: profile?.avatar_url ?? null,
+                  }
+                : null,
+        [user, profile],
+    );
 
-    const value = { user, currentUser, loading, signInWithEmail, signOut };
+    const value = useMemo(
+        () => ({ user, sessionUser, loading, signInWithEmail, signOut }),
+        [user, sessionUser, loading],
+    );
 
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
