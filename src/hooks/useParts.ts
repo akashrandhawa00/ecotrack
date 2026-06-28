@@ -32,6 +32,8 @@ export function useParts() {
                     description: part.part_description,
                 })),
             );
+        } catch (err) {
+            setError(err ? err.message : "Unknown Error.");
         } finally {
             setLoading(false);
         }

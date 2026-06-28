@@ -74,17 +74,23 @@ export const ProductionRunForm = () => {
     const validateForm = (): boolean => {
         const newErrors: Partial<Record<keyof ProductionFormData, string>> = {};
 
+        const qtyLoaded = form.qtyLoaded ?? 0;
+        const qtyCoated = form.qtyCoated ?? 0;
+        const defects = form.defects ?? 0;
+        const fallOff = form.fallOff ?? 0;
+
         if (!form.date) newErrors.date = "Date is required.";
         if (!form.time) newErrors.time = "Time is required.";
         if (!form.shift) newErrors.shift = "Please select a shift.";
         if (!form.partNumber) newErrors.partNumber = "Please select a part.";
-        if (form.qtyLoaded <= 0) newErrors.qtyLoaded = "Must be more than 0.";
-        if (form.qtyCoated > form.qtyLoaded && form.qtyCoated >= 0)
-            newErrors.qtyCoated = "Cannot be less than Qty Loaded";
-        if (form.defects < 0) newErrors.defects = "Cannot be negative.";
-        if (form.fallOff < 0) newErrors.fallOff = "Cannot be negative.";
+        if (qtyLoaded <= 0) newErrors.qtyLoaded = "Must be more than 0.";
+        if (qtyCoated > qtyLoaded)
+            newErrors.qtyCoated = "Cannot exceed Quantity Loaded";
+        if (defects < 0) newErrors.defects = "Cannot be negative.";
+        if (fallOff < 0) newErrors.fallOff = "Cannot be negative.";
 
-        const totalOut = form.qtyCoated + form.defects + form.fallOff;
+        const totalOut =
+            (form.qtyCoated ?? 0) + (form.defects ?? 0) + (form.fallOff ?? 0);
         if (totalOut > form.qtyLoaded) {
             newErrors.qtyCoated =
                 "Coated + defects + falloff exceed the load quantity.";
@@ -107,30 +113,35 @@ export const ProductionRunForm = () => {
         setLoading(true);
         setError(null);
 
-        const { error: saveRunError } = await supabase
-            .from("production_runs")
-            .insert([
-                {
-                    part_number: form.partNumber,
-                    quantity_loaded: form.qtyLoaded,
-                    quantity_coated: form.qtyCoated,
-                    quantity_defects: form.defects,
-                    quantity_falloff: form.fallOff,
-                    run_date: form.date,
-                    shift: form.shift,
-                    logged_by: user.id,
-                },
-            ]);
+        try {
+            const { error: saveRunError } = await supabase
+                .from("production_runs")
+                .insert([
+                    {
+                        part_number: form.partNumber,
+                        quantity_loaded: form.qtyLoaded,
+                        quantity_coated: form.qtyCoated,
+                        quantity_defects: form.defects,
+                        quantity_falloff: form.fallOff,
+                        run_date: form.date,
+                        shift: form.shift,
+                        logged_by: user.id,
+                    },
+                ]);
 
-        setLoading(false);
-
-        if (saveRunError) {
-            setError(saveRunError.message ?? "Unknown error");
-            return;
+            if (saveRunError) {
+                throw saveRunError;
+            }
+        } catch (err) {
+            setError(err.message ?? "Unknown error");
+        } finally {
+            setLoading(false);
+            console.log("This ran");
+            setForm(initialForm);
         }
-
-        setForm(initialForm);
     };
+
+    const fallOffQuantity = form.qtyLoaded - form.qtyCoated - form.defects;
 
     return (
         <>
@@ -351,11 +362,7 @@ export const ProductionRunForm = () => {
                                 name="qtyFallOff"
                                 placeholder="0"
                                 min={0}
-                                value={
-                                    form.qtyLoaded -
-                                    form.qtyCoated -
-                                    form.defects
-                                }
+                                value={fallOffQuantity}
                                 onChange={(e) =>
                                     setForm({
                                         ...form,
@@ -365,7 +372,6 @@ export const ProductionRunForm = () => {
                                                 : Number(e.target.value),
                                     })
                                 }
-                                required
                                 className={`${inputeBaseStyle}`}
                             />
                         </div>
@@ -379,7 +385,13 @@ export const ProductionRunForm = () => {
                     >
                         Reset
                     </Button>
-                    <Button type="submit" className="flex-2 hover:bg-amber-500">
+                    <Button
+                        type="submit"
+                        className="flex-2 hover:bg-amber-500"
+                        disabled={
+                            loading || Object.keys(validationErrors).length > 0
+                        }
+                    >
                         Save Run
                     </Button>
                 </div>
@@ -400,6 +412,11 @@ export const ProductionRunForm = () => {
                         // <span className="text-sm text-red-300">
                         //     {validationErrors}
                         // </span>
+                    )}
+                    {error && (
+                        <p className="text-red-400">
+                            An error occured: {error}
+                        </p>
                     )}
                 </div>
             </form>
