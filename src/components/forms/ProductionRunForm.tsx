@@ -109,7 +109,7 @@ export const ProductionRunForm = () => {
         event.preventDefault();
 
         setError(null);
-        setValidationErrors(null);
+        setValidationErrors({});
         if (!user) {
             setError("You must be logged in");
             return;

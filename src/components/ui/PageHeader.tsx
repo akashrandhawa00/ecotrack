@@ -2,8 +2,21 @@ import { Button } from "../Button";
 import { useState } from "react";
 import { ProductionRunForm } from "../forms/ProductionRunForm";
 import { Modal } from "./Modal";
+import type { ProductionRun } from "../../hooks/useProductionRuns";
 
-export default function PageHeader({ runs, filterButton, addButton, title }) {
+interface Props {
+    filterButton: boolean;
+    addButton: boolean;
+    title: string;
+    runs: ProductionRun[];
+}
+
+export default function PageHeader({
+    runs,
+    filterButton,
+    addButton,
+    title,
+}: Props) {
     const [showModal, setShowModal] = useState<boolean>(false);
     const [showFilters, setShowFilters] = useState<boolean>(false);
 
