@@ -1,37 +1,41 @@
 import { useEffect } from "react";
 import PageHeader from "../components/ui/PageHeader";
-import { useParts } from "../hooks/useParts";
-import { PartsRow } from "../components/ui/PartsRow";
+import { useProductionRuns } from "../hooks/useProductionRuns";
+import { ProductionRunRow } from "../components/ui/ProductionRunRow";
+import { ProductionRunsSkeleton } from "../components/ui/ProductionRunsSkeleton";
 
-export const Parts = () => {
-    const { parts, loading, error, fetchParts } = useParts();
+export const ProductionRuns = () => {
+    const { runs, loading, error, fetchRuns } = useProductionRuns();
 
     useEffect(() => {
-        fetchParts();
-    }, [fetchParts]);
+        fetchRuns();
+    }, [fetchRuns]);
 
     return (
         <div className="px-10 py-8">
             <PageHeader
-                title={"Parts List"}
-                parts={parts}
-                filterButton={false}
-                addPartButton={true}
+                title={"Production Log"}
+                runs={runs}
+                filterButton={true}
                 addRunButton={true}
             />
             {loading ? (
-                <p>loading</p>
+                <ProductionRunsSkeleton />
             ) : error ? (
                 <div>Error: {error}</div>
             ) : (
-                <div id="parts-table" className="overflow-x-auto">
+                <div id="production-run-table" className="overflow-x-auto">
                     <table className="min-w-max w-full border-collapse text-left mt-8">
                         <thead>
                             <tr className="py-6 px-12 border-b border-surface-active">
                                 {[
-                                    "Part Number",
+                                    "Run ID",
+                                    "Part",
                                     "Description",
-                                    "Client",
+                                    "Shift",
+                                    "Loaded",
+                                    "Coated",
+                                    "Defects",
                                     "",
                                 ].map((header) => (
                                     <th
@@ -44,8 +48,8 @@ export const Parts = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {parts.map((part) => (
-                                <PartsRow key={part.partNumber} part={part} />
+                            {runs.map((run) => (
+                                <ProductionRunRow key={run.id} run={run} />
                             ))}
                         </tbody>
                     </table>
