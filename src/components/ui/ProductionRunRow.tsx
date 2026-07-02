@@ -4,9 +4,9 @@ import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
 const tdBaseStyle = "px-3 py-3 text-sm";
 const shiftStyles = {
-    morning: "bg-green-700 text-green-100",
-    afternoon: "bg-yellow-500 text-yellow-900",
-    midnight: "bg-purple-400 text-purple-800",
+    morning: "bg-emerald-700 text-emerald-200",
+    afternoon: "bg-blue-600 text-blue-200",
+    midnight: "bg-rose-800 text-rose-200",
 };
 const cardBaseStyle = "rounded-lg px-4 py-3 border border-white/20 bg-gray-900";
 const cardHeadingStyle =
@@ -35,13 +35,15 @@ export const ProductionRunRow = ({ run }: { run: ProductionRun }) => {
             >
                 <td className={`${tdBaseStyle}`}>{run.id}</td>
                 <td className={`${tdBaseStyle}`}>{run.partNumber}</td>
-                <td className={`${tdBaseStyle}`}>{run.partDescription}</td>
                 <td className={`${tdBaseStyle}`}>
                     <span
                         className={`rounded inline-block px-2 py-0.5 ${shiftStyles[run.shift]}`}
                     >
                         {run.shift}
                     </span>
+                </td>
+                <td className={`${tdBaseStyle} uppercase`}>
+                    {run.partDescription}
                 </td>
                 <td className={`${tdBaseStyle}`}>{run.qtyLoaded}</td>
                 <td className={`${tdBaseStyle}`}>{run.qtyCoated}</td>

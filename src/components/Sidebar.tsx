@@ -13,7 +13,7 @@ import { BiSolidComponent } from "react-icons/bi";
 import { HiOutlineMenu } from "react-icons/hi";
 
 export const Sidebar = () => {
-    const { signOut, sessionUser } = useAuth();
+    const { signOut, profile } = useAuth();
 
     const NAV_LINKS = [
         { to: "/", label: "Overview", logo: RxDashboard },
@@ -59,9 +59,9 @@ ${
         return (
             <div className="flex flex-col items-center justify-center">
                 <div className="text-center pb-2">
-                    <p className="text-text-secondary">{sessionUser?.name}</p>{" "}
+                    <p className="text-text-secondary">{profile?.full_name}</p>{" "}
                     <div className="text-text-label uppercase text-xs">
-                        {sessionUser?.role}
+                        {profile?.role}
                     </div>
                 </div>{" "}
                 <Button
